@@ -496,6 +496,7 @@ HINTS = {
         "Load K normally, then use tl.trans(k_block) or adjust your dot product.",
         "Don't forget to multiply by scale at the end!",
         "Loop over head_dim in chunks of BLOCK_D.",
+        "Output has shape (B, H, S, S): scores[b,h,i,j] = sum_d(Q[b,h,i,d] * K[b,h,j,d]) * scale.",
     ],
     5: [
         "Each program handles one row: row_idx = tl.program_id(0).",
@@ -503,6 +504,7 @@ HINTS = {
         "Generate mask on-the-fly: causal_mask = col_offs <= row_idx.",
         "Apply mask before softmax: scores = tl.where(causal_mask, scores, -inf).",
         "Rest is same as softmax: max -> exp -> sum -> divide.",
+        "Handle edge case: first row has only one valid position (itself).",
     ],
     6: [
         "You can compose your previous implementations!",
@@ -510,6 +512,7 @@ HINTS = {
         "Call: weights = causal_softmax(scores)",
         "Final: output = weights @ v (can use torch.matmul for now)",
         "Make sure shapes are correct throughout.",
+        "This approach materializes O(S²) memory - we'll optimize this next!",
     ],
     7: [
         "Process one query row at a time, iterate over K/V tiles.",
@@ -523,10 +526,9 @@ HINTS = {
         "Grid is 2D: (num_q_blocks, batch*heads). Each program handles BLOCK_M query rows.",
         "Track per-row state: max_vec(BLOCK_M,), sum_vec(BLOCK_M,), acc(BLOCK_M, D).",
         "S_block = tl.dot(Q_block, tl.trans(K_block)) * scale gives (BLOCK_M, BLOCK_N).",
-        "row_max = tl.max(S_block, axis=1) gives per-row max.",
         "Correction: exp(old_max - new_max) to rescale previous accumulations.",
         "Causal mask: q_offs[:, None] >= k_offs[None, :] creates 2D mask.",
-        "Final: acc += tl.dot(exp_s.to(v_block.dtype), v_block)",
+        "Final: acc = acc * correction[:, None] + tl.dot(exp_s.to(v_block.dtype), v_block)",
     ],
 }
 

@@ -43,6 +43,51 @@ python quest.py start 1  # Begin Level 1
 
 Levels unlock sequentially. Complete one to access the next.
 
+## Getting AI Help (Claude Code Tutor)
+
+When you're stuck, use the built-in **Claude Code tutor** for Socratic guidance:
+
+```bash
+# In Claude Code, use the /tutor command:
+/tutor My softmax gives NaN for large values
+/tutor My kernel works but is slower than PyTorch
+/tutor What does "incompatible shapes" mean?
+```
+
+The tutor will:
+- Read your actual implementation
+- Analyze for common issues specific to your level
+- Guide you with questions (not give away answers)
+- Explain the "why" behind GPU programming patterns
+
+**Files:**
+- `.claude/skills/triton-tutor.md` - Comprehensive tutor knowledge base
+- `.claude/commands/tutor.md` - Slash command definition
+- `CLAUDE.md` - Project context for Claude Code
+
+## Running Tests
+
+The project includes a comprehensive pytest test suite:
+
+```bash
+# Run all tests
+python -m pytest tests/ -v
+
+# Run only non-GPU tests (faster, CI-friendly)
+python -m pytest tests/ -v --ignore=tests/test_baselines.py
+
+# Run specific test file
+python -m pytest tests/test_cli.py -v
+```
+
+**Test coverage:**
+- `test_cli.py` - CLI command functionality
+- `test_progress.py` - Progress tracking (save/load/reset)
+- `test_hints.py` - Hint system
+- `test_levels.py` - Level unlocking logic
+- `test_baselines.py` - Baseline implementations (requires CUDA)
+- `test_testing_framework.py` - Test harness verification
+
 ## Requirements
 
 - Python 3.8+
@@ -54,6 +99,7 @@ Levels unlock sequentially. Complete one to access the next.
 ```
 triton_quest/
 ├── quest.py              # Main CLI
+├── CLAUDE.md             # Claude Code project context
 ├── levels/               # Your challenge files (edit these!)
 │   ├── level1_vector_add.py
 │   ├── level2_matmul.py
@@ -63,9 +109,22 @@ triton_quest/
 │   ├── level6_naive_attention.py
 │   ├── level7_fused_attention.py
 │   └── level8_flash_attention.py
-└── utils/
-    ├── baseline.py       # PyTorch reference implementations
-    └── testing.py        # Test harness
+├── utils/
+│   ├── baseline.py       # PyTorch reference implementations
+│   └── testing.py        # Test harness
+├── tests/                # pytest test suite (76 tests)
+│   ├── conftest.py       # Shared fixtures
+│   ├── test_cli.py
+│   ├── test_progress.py
+│   ├── test_hints.py
+│   ├── test_levels.py
+│   ├── test_baselines.py
+│   └── test_testing_framework.py
+└── .claude/
+    ├── skills/
+    │   └── triton-tutor.md   # AI tutor knowledge base
+    └── commands/
+        └── tutor.md          # /tutor slash command
 ```
 
 ---
